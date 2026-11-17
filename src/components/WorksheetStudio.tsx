@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { chapter1WorksheetData } from "@/data/chapter1WorksheetData";
 import { 
   BookOpen, CheckCircle2, XCircle, HelpCircle, ChevronRight, ChevronLeft, 
-  Printer, Sparkles, Award, ExternalLink, RefreshCw, Columns, Download
+  Printer, Sparkles, Award, ExternalLink, RefreshCw, Columns, Download, Flower2
 } from "lucide-react";
 
 export default function WorksheetStudio() {
@@ -60,28 +60,35 @@ export default function WorksheetStudio() {
   }).length;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-emerald-500 selection:text-white">
+    // Cosmos Night Theme Background with subtle warm petal glow
+    <div className="min-h-screen bg-[#130d14] text-[#f7eef3] flex flex-col font-sans selection:bg-[#e05688] selection:text-white">
       {/* =========================================================================
-          SCREEN INTERACTIVE VIEW (Hidden completely during Print)
+          SCREEN INTERACTIVE VIEW (Cosmos Flower Botanical Theme)
           ========================================================================= */}
       <div className="print:hidden flex flex-col min-h-screen">
         {/* Top Header */}
-        <header className="border-b border-slate-800 bg-slate-900/95 backdrop-blur-md sticky top-0 z-30 px-3 py-2.5 sm:px-6 flex items-center justify-between">
+        <header className="border-b border-[#3d2433] bg-[#1d121c]/90 backdrop-blur-md sticky top-0 z-30 px-3 py-2.5 sm:px-6 flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center font-black text-white text-sm shadow-lg shadow-emerald-500/20">
-              WS
+            {/* Cosmos Botanical Avatar / Icon */}
+            <div className="relative w-9 h-9 rounded-xl overflow-hidden border border-[#e05688]/40 shadow-md shadow-[#e05688]/20 flex items-center justify-center bg-gradient-to-br from-[#e05688] to-[#913054]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img 
+                src="/cosmos-flowers.avif" 
+                alt="Cosmos Flower Logo" 
+                className="w-full h-full object-cover opacity-90 hover:scale-110 transition-transform" 
+              />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-950/60 border border-emerald-800/80 px-2 py-0.5 rounded-full">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#ff80ab] bg-[#3a1525]/80 border border-[#e05688]/40 px-2 py-0.5 rounded-full">
                   NCERT Class 7 Maths
                 </span>
-                <span className="text-xs text-slate-400 font-medium hidden md:inline">
+                <span className="text-xs text-[#d1b3c2] font-medium hidden md:inline">
                   Ganita Prakash Part-II
                 </span>
               </div>
-              <h1 className="text-xs sm:text-sm font-extrabold text-white tracking-tight flex items-center gap-2">
-                Ch-1: Geometric Twins <span className="text-xs font-normal text-slate-400">(Parallel Studio)</span>
+              <h1 className="text-xs sm:text-sm font-black text-white tracking-tight flex items-center gap-2">
+                Ch-1: Geometric Twins <span className="text-xs font-normal text-[#c7a4b6]">(Cosmos Studio)</span>
               </h1>
             </div>
           </div>
@@ -93,19 +100,19 @@ export default function WorksheetStudio() {
               onClick={() => setShowPdfViewer((prev) => !prev)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
                 showPdfViewer 
-                  ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-300" 
-                  : "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700"
+                  ? "bg-[#e05688]/20 border-[#e05688]/50 text-[#ff80ab]" 
+                  : "bg-[#271725] border-[#442639] text-[#e0cfd8] hover:bg-[#341e31]"
               }`}
               title="Toggle Split-Screen PDF View"
             >
-              <Columns size={14} className={showPdfViewer ? "text-emerald-400" : ""} />
+              <Columns size={14} className={showPdfViewer ? "text-[#ff80ab]" : ""} />
               <span className="hidden sm:inline">{showPdfViewer ? "Hide PDF" : "Show PDF"}</span>
             </button>
 
-            {/* Print Current Page (Laser High-Contrast) */}
+            {/* Print Current Page */}
             <button
               onClick={handlePrintCurrent}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white transition-all cursor-pointer shadow-xs"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#e05688] to-[#c73e70] hover:from-[#e96796] hover:to-[#d84b7f] text-xs font-bold text-white transition-all cursor-pointer shadow-md shadow-[#e05688]/20"
               title="Print high-contrast laser worksheet for Page #{currentPage.pageNumber}"
             >
               <Printer size={14} />
@@ -115,10 +122,10 @@ export default function WorksheetStudio() {
             {/* Print Complete Workbook */}
             <button
               onClick={handlePrintAll}
-              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-200 transition-all cursor-pointer"
+              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#271725] hover:bg-[#382035] border border-[#49273d] text-xs font-semibold text-[#f0dfe7] transition-all cursor-pointer"
               title="Print complete 7-page laser test workbook"
             >
-              <Download size={14} className="text-emerald-400" />
+              <Download size={14} className="text-[#ff80ab]" />
               <span>Full Workbook</span>
             </button>
 
@@ -127,16 +134,16 @@ export default function WorksheetStudio() {
               href={`/pdf/gegp201.pdf#page=${currentPage.pageNumber}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-200 transition-all"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#271725] hover:bg-[#382035] border border-[#49273d] text-xs font-semibold text-[#f0dfe7] transition-all"
               title="Open original textbook PDF in new tab"
             >
-              <ExternalLink size={14} className="text-blue-400" />
+              <ExternalLink size={14} className="text-[#ff80ab]" />
             </a>
 
             {/* Reset Page */}
             <button
               onClick={resetPage}
-              className="p-1.5 rounded-lg bg-slate-850 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-slate-200 transition-all cursor-pointer"
+              className="p-1.5 rounded-lg bg-[#271725] hover:bg-[#382035] border border-[#49273d] text-[#c9a7b9] hover:text-white transition-all cursor-pointer"
               title="Reset answers on this page"
             >
               <RefreshCw size={13} />
@@ -148,25 +155,25 @@ export default function WorksheetStudio() {
         <div className="flex-1 flex overflow-hidden">
           {/* LEFT PANE: Actual Textbook PDF Viewer */}
           {showPdfViewer && (
-            <aside className="w-full lg:w-1/2 border-r border-slate-800 bg-slate-900 flex flex-col h-[calc(100vh-57px)]">
-              <div className="px-4 py-2 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between text-xs">
+            <aside className="w-full lg:w-1/2 border-r border-[#382030] bg-[#160f17] flex flex-col h-[calc(100vh-57px)]">
+              <div className="px-4 py-2 bg-[#1b121c] border-b border-[#382030] flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="font-bold text-slate-200">Official NCERT Textbook PDF</span>
-                  <span className="text-[11px] text-slate-400">(Synced to Page #{currentPage.pageNumber})</span>
+                  <span className="w-2 h-2 rounded-full bg-[#ff80ab] animate-pulse" />
+                  <span className="font-bold text-[#f2e6ed]">Official NCERT Textbook PDF</span>
+                  <span className="text-[11px] text-[#b895a7]">(Synced to Page #{currentPage.pageNumber})</span>
                 </div>
                 <a 
                   href={`/pdf/gegp201.pdf#page=${currentPage.pageNumber}`}
                   target="_blank" 
                   rel="noreferrer"
-                  className="text-[11px] text-emerald-400 hover:underline flex items-center gap-1 font-medium"
+                  className="text-[11px] text-[#ff80ab] hover:underline flex items-center gap-1 font-semibold"
                 >
                   <span>Fullscreen</span>
                   <ExternalLink size={11} />
                 </a>
               </div>
 
-              <div className="flex-1 w-full bg-slate-950">
+              <div className="flex-1 w-full bg-[#110b12]">
                 <iframe
                   key={`pdf-frame-page-${currentPage.pageNumber}`}
                   src={pdfUrl}
@@ -182,10 +189,10 @@ export default function WorksheetStudio() {
             showPdfViewer ? "w-full lg:w-1/2" : "w-full max-w-5xl mx-auto"
           }`}>
             {/* Page Directory Carousel */}
-            <div className="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
-              <div className="flex items-center justify-between text-xs text-slate-400">
-                <span className="font-bold text-slate-300">Quick Page Switcher:</span>
-                <span className="font-semibold text-emerald-400">
+            <div className="p-3.5 rounded-2xl bg-[#1e141f] border border-[#3b2333] space-y-2 shadow-sm">
+              <div className="flex items-center justify-between text-xs text-[#cfb0c0]">
+                <span className="font-bold text-[#f5ebf1]">Quick Page Switcher:</span>
+                <span className="font-semibold text-[#ff80ab]">
                   Page #{currentPage.pageNumber} / {chapter1WorksheetData.pages.length}
                 </span>
               </div>
@@ -196,8 +203,8 @@ export default function WorksheetStudio() {
                     onClick={() => setActivePageIndex(idx)}
                     className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all flex items-center gap-1.5 cursor-pointer border ${
                       idx === activePageIndex 
-                        ? "bg-emerald-500 border-emerald-400 text-slate-950 shadow-md shadow-emerald-500/20" 
-                        : "bg-slate-950/80 border-slate-800 text-slate-300 hover:border-slate-700"
+                        ? "bg-gradient-to-r from-[#e05688] to-[#c73e70] border-[#ff80ab] text-white shadow-md shadow-[#e05688]/30 font-black" 
+                        : "bg-[#160e17] border-[#382030] text-[#e0cfd8] hover:border-[#6b3a56]"
                     }`}
                   >
                     <span>P.{p.pageNumber}</span>
@@ -207,31 +214,32 @@ export default function WorksheetStudio() {
             </div>
 
             {/* Active Page Header & Score */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-slate-900 to-slate-900 border border-emerald-900/30 flex items-start sm:items-center justify-between gap-4">
+            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-[#311524] via-[#211420] to-[#1a1019] border border-[#52253e] flex items-start sm:items-center justify-between gap-4 shadow-sm">
               <div>
-                <div className="text-xs font-semibold text-emerald-400 mb-0.5">
-                  Interactive Worksheet • Page #{currentPage.pageNumber}
+                <div className="text-xs font-bold text-[#ff80ab] mb-0.5 flex items-center gap-1.5">
+                  <Flower2 size={13} className="text-[#ff80ab]" />
+                  <span>Worksheet • Textbook Page #{currentPage.pageNumber}</span>
                 </div>
                 <h2 className="text-base sm:text-lg font-black text-white tracking-tight">
                   {currentPage.topicTitle}
                 </h2>
               </div>
 
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-bold shrink-0">
-                <Award size={15} className="text-amber-400" />
-                <span>Score:</span>
-                <span className="text-emerald-400 text-sm font-black">{correctCount}</span>
-                <span className="text-slate-500">/ {totalQuestions}</span>
+              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#180e18] border border-[#49273c] text-xs font-bold shrink-0">
+                <Award size={15} className="text-[#f5c044]" />
+                <span className="text-[#d8bfcd]">Score:</span>
+                <span className="text-[#ff80ab] text-sm font-black">{correctCount}</span>
+                <span className="text-[#8e6e80]">/ {totalQuestions}</span>
               </div>
             </div>
 
             {/* Key Concepts from this Page */}
-            <div className="p-4 rounded-2xl bg-slate-900/50 border border-slate-800/80">
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <Sparkles size={13} className="text-emerald-400" />
+            <div className="p-4 rounded-2xl bg-[#1c121d]/80 border border-[#3b2333]">
+              <div className="text-xs font-extrabold text-[#f5c044] uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <Sparkles size={13} className="text-[#f5c044]" />
                 Core Concepts from Page #{currentPage.pageNumber}:
               </div>
-              <ul className="space-y-1.5 text-xs sm:text-sm text-slate-300 list-disc list-inside">
+              <ul className="space-y-1.5 text-xs sm:text-sm text-[#e8dbe2] list-disc list-inside">
                 {currentPage.coreConcepts.map((c, i) => (
                   <li key={i} className="leading-relaxed">{c}</li>
                 ))}
@@ -250,28 +258,28 @@ export default function WorksheetStudio() {
                 return (
                   <div 
                     key={q.id}
-                    className={`p-4 sm:p-5 rounded-2xl bg-slate-900 border transition-all ${
+                    className={`p-4 sm:p-5 rounded-2xl bg-[#1d131f] border transition-all ${
                       isCorrect 
-                        ? "border-emerald-500/50 bg-emerald-950/10" 
+                        ? "border-[#4ade80]/60 bg-[#14291e]/40 shadow-sm shadow-[#4ade80]/10" 
                         : isWrong 
-                        ? "border-rose-500/40 bg-rose-950/10" 
-                        : "border-slate-800 hover:border-slate-700"
+                        ? "border-[#f43f5e]/50 bg-[#311119]/40" 
+                        : "border-[#382232] hover:border-[#5a324d]"
                     }`}
                   >
                     {/* Header */}
                     <div className="flex items-start justify-between gap-3 mb-2.5">
                       <div className="flex items-center gap-2">
-                        <span className="w-6 h-6 rounded-md bg-slate-800 text-emerald-400 font-black text-xs flex items-center justify-center">
+                        <span className="w-6 h-6 rounded-md bg-[#2b1727] text-[#ff80ab] font-black text-xs flex items-center justify-center border border-[#e05688]/30">
                           Q{qIndex + 1}
                         </span>
-                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#271524] text-[#cfb0c0] border border-[#3f2238]">
                           {q.type === "mcq" ? "Multiple Choice" : q.type === "fill" ? "Fill in the Blank" : "True / False"}
                         </span>
                       </div>
 
                       <button
                         onClick={() => toggleHint(q.id)}
-                        className="text-xs text-amber-400/90 hover:text-amber-300 flex items-center gap-1 cursor-pointer"
+                        className="text-xs text-[#f5c044] hover:text-[#ffd666] flex items-center gap-1 cursor-pointer font-medium"
                       >
                         <HelpCircle size={13} />
                         <span>{showHints[q.id] ? "Hide Hint" : "Hint"}</span>
@@ -285,8 +293,8 @@ export default function WorksheetStudio() {
 
                     {/* Hint */}
                     {showHints[q.id] && (
-                      <div className="mb-3 p-2.5 rounded-xl bg-amber-950/30 border border-amber-800/40 text-amber-200 text-xs leading-relaxed flex items-start gap-2">
-                        <Sparkles size={14} className="text-amber-400 shrink-0 mt-0.5" />
+                      <div className="mb-3 p-2.5 rounded-xl bg-[#2e1d0d]/60 border border-[#b48227]/40 text-[#ffd580] text-xs leading-relaxed flex items-start gap-2">
+                        <Sparkles size={14} className="text-[#f5c044] shrink-0 mt-0.5" />
                         <span>{q.hint}</span>
                       </div>
                     )}
@@ -306,17 +314,17 @@ export default function WorksheetStudio() {
                               onClick={() => handleSelectOption(q.id, opt)}
                               className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition-all flex items-center justify-between cursor-pointer border ${
                                 isThisCorrect 
-                                ? "bg-emerald-500/20 border-emerald-500 text-emerald-200 font-bold" 
+                                ? "bg-[#4ade80]/20 border-[#4ade80] text-[#86efac] font-bold" 
                                 : isThisWrongSelected 
-                                ? "bg-rose-500/20 border-rose-500 text-rose-200" 
+                                ? "bg-[#f43f5e]/20 border-[#f43f5e] text-[#fca5a5]" 
                                 : isSelected 
-                                ? "bg-emerald-500/15 border-emerald-500/50 text-white font-semibold" 
-                                : "bg-slate-950 border-slate-800 hover:border-slate-700 text-slate-300"
+                                ? "bg-[#e05688]/20 border-[#ff80ab] text-white font-bold" 
+                                : "bg-[#160d17] border-[#382030] hover:border-[#5f3350] text-[#e8dbe2]"
                               }`}
                             >
                               <span>{opt}</span>
-                              {isThisCorrect && <CheckCircle2 size={15} className="text-emerald-400 shrink-0" />}
-                              {isThisWrongSelected && <XCircle size={15} className="text-rose-400 shrink-0" />}
+                              {isThisCorrect && <CheckCircle2 size={15} className="text-[#4ade80] shrink-0" />}
+                              {isThisWrongSelected && <XCircle size={15} className="text-[#f43f5e] shrink-0" />}
                             </button>
                           );
                         })}
@@ -337,12 +345,12 @@ export default function WorksheetStudio() {
                               onClick={() => handleSelectOption(q.id, opt)}
                               className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
                                 isThisCorrect
-                                  ? "bg-emerald-500/20 border-emerald-500 text-emerald-200"
+                                  ? "bg-[#4ade80]/20 border-[#4ade80] text-[#86efac]"
                                   : isThisWrongSelected
-                                  ? "bg-rose-500/20 border-rose-500 text-rose-200"
+                                  ? "bg-[#f43f5e]/20 border-[#f43f5e] text-[#fca5a5]"
                                   : isSelected
-                                  ? "bg-emerald-500/15 border-emerald-500/50 text-white"
-                                  : "bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700"
+                                  ? "bg-[#e05688]/20 border-[#ff80ab] text-white"
+                                  : "bg-[#160d17] border-[#382030] text-[#e8dbe2] hover:border-[#5f3350]"
                               }`}
                             >
                               {opt}
@@ -360,7 +368,7 @@ export default function WorksheetStudio() {
                           value={userAnswers[q.id] || ""}
                           onChange={(e) => handleTextAnswer(q.id, e.target.value)}
                           placeholder="Type answer here..."
-                          className="w-full sm:w-72 px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-emerald-500 text-white text-xs outline-none"
+                          className="w-full sm:w-72 px-3 py-1.5 rounded-xl bg-[#160d17] border border-[#382030] focus:border-[#e05688] text-white text-xs outline-none"
                         />
                       </div>
                     )}
@@ -370,24 +378,24 @@ export default function WorksheetStudio() {
                       <button
                         onClick={() => toggleCheck(q.id)}
                         disabled={!userAnswers[q.id]}
-                        className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-bold text-white transition-all cursor-pointer shadow-xs"
+                        className="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-[#e05688] to-[#c73e70] hover:from-[#e96796] hover:to-[#d84b7f] disabled:opacity-40 disabled:cursor-not-allowed text-xs font-bold text-white transition-all cursor-pointer shadow-xs"
                       >
                         Check Answer
                       </button>
                     ) : (
-                      <div className="p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-xs space-y-1">
+                      <div className="p-2.5 rounded-xl bg-[#160d17]/90 border border-[#382030] text-xs space-y-1">
                         <div className="flex items-center gap-1.5 font-bold">
                           {isCorrect ? (
-                            <span className="text-emerald-400 flex items-center gap-1">
+                            <span className="text-[#4ade80] flex items-center gap-1">
                               <CheckCircle2 size={13} /> Correct!
                             </span>
                           ) : (
-                            <span className="text-rose-400 flex items-center gap-1">
+                            <span className="text-[#f43f5e] flex items-center gap-1">
                               <XCircle size={13} /> Correct Answer: <u className="font-mono text-white ml-1">{q.answer}</u>
                             </span>
                           )}
                         </div>
-                        <p className="text-slate-400 text-[11px] leading-relaxed">
+                        <p className="text-[#c9abbc] text-[11px] leading-relaxed">
                           <strong>Explanation:</strong> {q.explanation}
                         </p>
                       </div>
@@ -398,24 +406,24 @@ export default function WorksheetStudio() {
             </div>
 
             {/* Navigation Controls */}
-            <div className="flex items-center justify-between pt-4 border-t border-slate-800">
+            <div className="flex items-center justify-between pt-4 border-t border-[#382030]">
               <button
                 onClick={() => setActivePageIndex((prev) => Math.max(0, prev - 1))}
                 disabled={activePageIndex === 0}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-40 border border-slate-800 text-xs font-bold text-slate-200 transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#211420] hover:bg-[#2d1b2c] disabled:opacity-40 border border-[#3b2333] text-xs font-bold text-[#f2e6ed] transition-all cursor-pointer"
               >
                 <ChevronLeft size={14} />
                 <span>Previous Page</span>
               </button>
 
-              <span className="text-xs font-semibold text-slate-400">
+              <span className="text-xs font-semibold text-[#c7a4b6]">
                 Page #{currentPage.pageNumber} of {chapter1WorksheetData.pages.length}
               </span>
 
               <button
                 onClick={() => setActivePageIndex((prev) => Math.min(chapter1WorksheetData.pages.length - 1, prev + 1))}
                 disabled={activePageIndex === chapter1WorksheetData.pages.length - 1}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-xs font-bold text-white transition-all cursor-pointer shadow-xs"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#e05688] to-[#c73e70] hover:from-[#e96796] hover:to-[#d84b7f] disabled:opacity-40 text-xs font-bold text-white transition-all cursor-pointer shadow-xs"
               >
                 <span>Next Page</span>
                 <ChevronRight size={14} />
@@ -427,7 +435,7 @@ export default function WorksheetStudio() {
 
       {/* =========================================================================
           LASER PRINTER HIGH-CONTRAST WORKSHEET (Strict Black & White for Sharp Print)
-          Active ONLY during Ctrl+P or Print Button Click
+          Laser rule: Pure #000000 on #ffffff, 0% grey halftones
           ========================================================================= */}
       <div className="hidden print:block bg-white text-black font-sans w-full p-0 m-0">
         <style dangerouslySetInnerHTML={{ __html: `
@@ -450,9 +458,6 @@ export default function WorksheetStudio() {
             .laser-divider {
               border-bottom: 1.5pt solid #000000 !important;
             }
-            .laser-dashed {
-              border-bottom: 1pt dashed #000000 !important;
-            }
             .avoid-break {
               page-break-inside: avoid !important;
               break-inside: avoid !important;
@@ -468,7 +473,6 @@ export default function WorksheetStudio() {
           <div key={pageData.pageNumber} className={pIdx > 0 ? "page-break pt-4" : ""}>
             {/* High-Contrast Laser Header Box */}
             <div className="laser-box p-3.5 rounded-lg mb-4">
-              {/* Institution Title */}
               <div className="flex items-center justify-between laser-divider pb-2.5">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 border-2 border-black rounded flex items-center justify-center font-black text-xl text-black">
@@ -537,7 +541,6 @@ export default function WorksheetStudio() {
 
               {pageData.questions.map((q, qNum) => (
                 <div key={q.id} className="avoid-break pb-3 border-b border-black text-xs">
-                  {/* Question Title & Mark */}
                   <div className="font-black text-black leading-snug flex items-start gap-1.5 text-xs">
                     <span className="font-black">Q{qNum + 1}.</span>
                     <span className="font-extrabold flex-1">{q.question}</span>
@@ -546,12 +549,10 @@ export default function WorksheetStudio() {
                     </span>
                   </div>
 
-                  {/* High-Contrast MCQ Circles for Laser Printing */}
                   {q.type === "mcq" && q.options && (
                     <div className="grid grid-cols-2 gap-x-6 gap-y-2.5 mt-2.5 pl-4 text-xs">
                       {q.options.map((opt, optIdx) => (
                         <div key={optIdx} className="flex items-center gap-2">
-                          {/* Laser crisp hollow circle */}
                           <span className="w-4 h-4 rounded-full border-2 border-black inline-block shrink-0" />
                           <span className="font-bold text-black">
                             ({String.fromCharCode(65 + optIdx)}) {opt}
@@ -561,7 +562,6 @@ export default function WorksheetStudio() {
                     </div>
                   )}
 
-                  {/* High-Contrast True / False Boxes */}
                   {q.type === "true_false" && (
                     <div className="flex gap-10 mt-2.5 pl-4 text-xs font-black text-black">
                       <div className="flex items-center gap-2">
@@ -575,14 +575,12 @@ export default function WorksheetStudio() {
                     </div>
                   )}
 
-                  {/* High-Contrast Fill with Solid Line */}
                   {q.type === "fill" && (
                     <div className="mt-3 pl-4 text-xs font-bold text-black">
                       ANSWER: __________________________________________________________________
                     </div>
                   )}
 
-                  {/* Dedicated Rough Work Area */}
                   <div className="mt-2.5 text-[9px] font-bold text-black border-t border-dashed border-gray-400 pt-1 flex justify-between">
                     <span>Working / Rough space:</span>
                     <span className="italic">Verification required</span>
@@ -598,7 +596,6 @@ export default function WorksheetStudio() {
                 <div>MARKS OBTAINED: ______ / {pageData.questions.length}</div>
               </div>
 
-              {/* High Contrast Compact Answer Strip for Quick Grading */}
               <div className="mt-2 text-[10px] font-bold text-black flex items-center gap-2 flex-wrap">
                 <span className="border border-black px-1.5 py-0.5 rounded font-black uppercase">
                   Grading Key:
