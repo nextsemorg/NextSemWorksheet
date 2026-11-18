@@ -129,19 +129,13 @@ export default function AttendanceRegisterStudio() {
         <div className="mb-2 pb-1.5 border-b-2 border-black">
           <div className="flex items-center justify-between gap-2 sm:gap-4 text-xs font-bold font-mono">
             
-            {/* Left: NextSem Logo & "ATTENDANCE REGISTER OF" & institution line */}
-            <div className="flex items-center gap-2 min-w-0 flex-1">
+            {/* Left: NextSem Logo only */}
+            <div className="flex items-center gap-2 min-w-0">
               <img
                 src="/nextsem_logo.png"
                 alt="NextSem Academy"
-                className="h-6 sm:h-7 w-auto object-contain shrink-0"
+                className="h-7 sm:h-8 w-auto object-contain shrink-0"
               />
-              <span className="tracking-tight uppercase whitespace-nowrap text-[11px] sm:text-xs">
-                ATTENDANCE REGISTER OF
-              </span>
-              <span className="border-b-2 border-black px-1 pb-0.5 tracking-wider uppercase text-[11px] sm:text-xs whitespace-nowrap text-slate-900">
-                {institutionName}
-              </span>
             </div>
 
             {/* Right: Class: ____  Month: _____ [Batch Badge] */}
