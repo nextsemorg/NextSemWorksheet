@@ -6,7 +6,7 @@ import {
   Printer, Download, FileSpreadsheet, Sparkles, RefreshCw, 
   CheckCircle2, XCircle, Calendar, Users, Eye, Edit3, 
   ChevronLeft, ChevronRight, HelpCircle, ArrowLeft, BookmarkCheck,
-  Check, Layers, Award
+  Check, Layers, Award, BookOpen
 } from "lucide-react";
 import { 
   generate100Students, StudentAttendance, MONTH_NAMES, DAYS_OF_WEEK 
@@ -18,19 +18,21 @@ export default function AttendanceRegisterStudio() {
   const [institutionName, setInstitutionName] = useState<string>("NextSem Academy / Class 7");
   const [classNameInput, setClassNameInput] = useState<string>("Class 7-A (Maths)");
   const [students, setStudents] = useState<StudentAttendance[]>(() => generate100Students(false));
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [viewMode, setViewMode] = useState<"spiral" | "print" | "compact">("spiral");
-  const [pageSlice, setPageSlice] = useState<"all" | "1-25" | "26-50" | "51-75" | "76-100">("1-25");
+  
+  // Default to Portrait 2-Page Spread Standard
+  // Page 1: Students 1–50 (Days 1–15)
+  // Page 2: Students 1–50 (Days 16–31 + Summary: Present, Absent, Remarks)
+  // Page 3: Students 51–100 (Days 1–15)
+  // Page 4: Students 51–100 (Days 16–31 + Summary: Present, Absent, Remarks)
+  const [activeSpreadSheet, setActiveSpreadSheet] = useState<"batch1-left" | "batch1-right" | "batch2-left" | "batch2-right" | "all-4-pages">("batch1-left");
   const [blankTemplateMode, setBlankTemplateMode] = useState<boolean>(true);
-  const [activeDateForQuickMark, setActiveDateForQuickMark] = useState<number>(1);
-  const [copiedNotification, setCopiedNotification] = useState<string | null>(null);
 
   // Number of days in selected month and year
   const daysInMonth = useMemo(() => {
     return new Date(year, month + 1, 0).getDate();
   }, [month, year]);
 
-  // Weekday for each day of the month (0 = Sun, 1 = Mon, ..., 6 = Sat)
+  // Weekdays map
   const dayWeekdays = useMemo(() => {
     const map: Record<number, { dayName: string; isSunday: boolean }> = {};
     for (let d = 1; d <= daysInMonth; d++) {
@@ -43,23 +45,11 @@ export default function AttendanceRegisterStudio() {
     return map;
   }, [month, year, daysInMonth]);
 
-  // Filtered & Paginated Students
-  const displayedStudents = useMemo(() => {
-    let list = students;
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      list = list.filter(
-        (s) => s.name.toLowerCase().includes(q) || s.rollNo.toString().includes(q)
-      );
-    }
-    if (pageSlice === "1-25") return list.slice(0, 25);
-    if (pageSlice === "26-50") return list.slice(25, 50);
-    if (pageSlice === "51-75") return list.slice(50, 75);
-    if (pageSlice === "76-100") return list.slice(75, 100);
-    return list;
-  }, [students, searchQuery, pageSlice]);
+  // Batches
+  const batch1 = useMemo(() => students.slice(0, 50), [students]);
+  const batch2 = useMemo(() => students.slice(50, 100), [students]);
 
-  // Toggle single cell attendance
+  // Single cell attendance toggle
   const toggleAttendance = (rollNo: number, day: number) => {
     if (blankTemplateMode) return;
     setStudents((prev) =>
@@ -81,42 +71,6 @@ export default function AttendanceRegisterStudio() {
     );
   };
 
-  // Mark all students Present for chosen date
-  const markAllPresentForDate = (day: number) => {
-    setStudents((prev) =>
-      prev.map((s) => ({
-        ...s,
-        attendance: { ...s.attendance, [day]: "P" },
-      }))
-    );
-  };
-
-  // Auto-mark Sundays as Holiday
-  const markSundaysAsHoliday = () => {
-    setStudents((prev) =>
-      prev.map((s) => {
-        const updated = { ...s.attendance };
-        for (let d = 1; d <= daysInMonth; d++) {
-          if (dayWeekdays[d]?.isSunday) {
-            updated[d] = "H";
-          }
-        }
-        return { ...s, attendance: updated };
-      })
-    );
-  };
-
-  // Populate sample attendance
-  const fillSampleData = () => {
-    setBlankTemplateMode(false);
-    setStudents(generate100Students(true));
-  };
-
-  // Clear all attendance (Blank register)
-  const clearAllAttendance = () => {
-    setStudents(generate100Students(false));
-  };
-
   // Student summary calculation
   const getStudentStats = (attendance: Record<number, "P" | "A" | "L" | "H" | "">) => {
     let p = 0, a = 0, l = 0, h = 0;
@@ -133,99 +87,311 @@ export default function AttendanceRegisterStudio() {
   };
 
   // Daily totals for bottom rows
-  const dailyTotals = useMemo(() => {
+  const getBatchDailyTotals = (studentList: StudentAttendance[]) => {
     const presentCount: Record<number, number> = {};
     const absentCount: Record<number, number> = {};
     for (let d = 1; d <= daysInMonth; d++) {
       presentCount[d] = 0;
       absentCount[d] = 0;
-      students.forEach((s) => {
+      studentList.forEach((s) => {
         if (s.attendance[d] === "P") presentCount[d]++;
         if (s.attendance[d] === "A") absentCount[d]++;
       });
     }
     return { presentCount, absentCount };
-  }, [students, daysInMonth]);
-
-  // Export to CSV
-  const exportToCSV = () => {
-    const headers = [
-      "Roll No", "Student Name", "Class",
-      ...Array.from({ length: daysInMonth }, (_, i) => `Day ${i + 1}`),
-      "Total Present", "Total Absent", "Total Leave", "Percentage"
-    ];
-
-    const rows = students.map((s) => {
-      const stats = getStudentStats(s.attendance);
-      const days = Array.from({ length: daysInMonth }, (_, i) => s.attendance[i + 1] || "");
-      return [
-        s.rollNo,
-        `"${s.name}"`,
-        `"${s.className}"`,
-        ...days,
-        stats.p,
-        stats.a,
-        stats.l,
-        `${stats.pct}%`
-      ].join(",");
-    });
-
-    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows].join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `Attendance_Register_100_Students_${MONTH_NAMES[month]}_${year}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   };
 
-  const handlePrint = (printAll: boolean) => {
-    if (printAll) {
-      setPageSlice("all");
+  const handlePrint = (allPages: boolean) => {
+    if (allPages) {
+      setActiveSpreadSheet("all-4-pages");
     }
     setTimeout(() => {
       window.print();
     }, 150);
   };
 
+  // Reusable Page Component (50 Students per A4 Portrait Page)
+  const renderRegisterPage = (
+    studentList: StudentAttendance[],
+    dayStart: number,
+    dayEnd: number,
+    isRightPage: boolean,
+    batchTitle: string,
+    pageNumber: number
+  ) => {
+    const totals = getBatchDailyTotals(studentList);
+    const dayCount = dayEnd - dayStart + 1;
+
+    return (
+      <div key={`page-${pageNumber}`} className="a4-portrait-page bg-white border-2 border-black p-3 sm:p-5 font-mono text-black shadow-md rounded-none mb-8 page-break-after-always">
+        
+        {/* Header: Attendance Register of _____________________ (Exact copy of image) */}
+        <div className="mb-2 pb-1.5 border-b-2 border-black">
+          <div className="flex items-baseline justify-between gap-2">
+            <div className="flex items-baseline gap-2 flex-grow">
+              <h2 className="text-sm sm:text-base font-bold tracking-tight uppercase whitespace-nowrap">
+                Attendance Register of
+              </h2>
+              <div className="border-b border-black flex-grow pb-0.5 px-2 font-bold text-xs sm:text-sm uppercase tracking-wider text-slate-800 truncate">
+                {institutionName}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 text-[11px] font-bold shrink-0">
+              <div>
+                <span>Class: </span>
+                <span className="border-b border-black px-1 pb-0.5">{classNameInput}</span>
+              </div>
+              <div>
+                <span>Month: </span>
+                <span className="border-b border-black px-1 pb-0.5 uppercase">{MONTH_NAMES[month]} {year}</span>
+              </div>
+              <div className="text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded text-[10px]">
+                {batchTitle} • {isRightPage ? `Days ${dayStart}-${dayEnd} + Summary` : `Days ${dayStart}-${dayEnd}`}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Table Grid (50 Students) */}
+        <div className="border border-black overflow-hidden">
+          <table className="w-full text-center border-collapse text-[9.5px]">
+            
+            {/* Table Header */}
+            <thead>
+              {/* Row 1: Weekday names */}
+              <tr className="border-b border-black bg-slate-50">
+                <th rowSpan={2} className="border-r border-black p-0.5 w-7 text-center font-bold uppercase bg-white">
+                  Sr.No
+                </th>
+                <th rowSpan={2} className="border-r border-black p-0.5 w-32 sm:w-36 text-left font-bold bg-white">
+                  <div className="text-[10px] leading-tight font-black">Name</div>
+                </th>
+                <th rowSpan={2} className="border-r border-black p-0.5 w-16 sm:w-20 text-center font-bold bg-white">
+                  <div className="text-[10px] leading-tight font-black">Class</div>
+                </th>
+
+                {/* Day Weekdays (Mo, Tu, We...) */}
+                {Array.from({ length: dayCount }, (_, idx) => {
+                  const dayNum = dayStart + idx;
+                  const info = dayWeekdays[dayNum];
+                  return (
+                    <th
+                      key={`wd-${dayNum}`}
+                      className={`border-r border-black p-0 text-[8px] font-bold ${
+                        info?.isSunday ? "bg-rose-100 text-rose-800 font-black" : "bg-slate-100 text-slate-700"
+                      }`}
+                    >
+                      {info?.dayName}
+                    </th>
+                  );
+                })}
+
+                {/* If Right Page: Summary Headers (Present, Absent, Remarks) */}
+                {isRightPage && (
+                  <>
+                    <th rowSpan={2} className="border-r border-black p-0.5 w-8 font-bold text-emerald-800 bg-emerald-50 text-[9px] uppercase">
+                      P
+                    </th>
+                    <th rowSpan={2} className="border-r border-black p-0.5 w-8 font-bold text-rose-800 bg-rose-50 text-[9px] uppercase">
+                      A
+                    </th>
+                    <th rowSpan={2} className="p-0.5 w-16 bg-slate-50 font-bold text-[9px] uppercase">
+                      Remark
+                    </th>
+                  </>
+                )}
+              </tr>
+
+              {/* Row 2: Day Date Numbers (1 to 15 or 16 to 31) */}
+              <tr className="border-b-2 border-black bg-white">
+                {Array.from({ length: dayCount }, (_, idx) => {
+                  const dayNum = dayStart + idx;
+                  const info = dayWeekdays[dayNum];
+                  return (
+                    <th
+                      key={`d-${dayNum}`}
+                      className={`border-r border-black p-0.5 font-mono font-bold text-[9px] sm:text-[10px] ${
+                        info?.isSunday ? "bg-rose-50 text-rose-800" : ""
+                      }`}
+                    >
+                      {dayNum}
+                    </th>
+                  );
+                })}
+              </tr>
+            </thead>
+
+            {/* Table Body (50 Records) */}
+            <tbody className="divide-y divide-black font-mono">
+              {studentList.map((student) => {
+                const stats = getStudentStats(student.attendance);
+
+                return (
+                  <tr 
+                    key={student.rollNo}
+                    className="h-[14.8px] leading-none hover:bg-slate-50 transition-colors"
+                  >
+                    {/* Sr.No */}
+                    <td className="border-r border-black p-0 text-center font-bold bg-white text-[9px]">
+                      {student.rollNo}
+                    </td>
+
+                    {/* Name (Blank space for handwritten entry) */}
+                    <td className="border-r border-black p-0.5 text-left font-bold bg-white truncate">
+                      {!blankTemplateMode && student.name ? (
+                        <span className="truncate text-slate-900">{student.name}</span>
+                      ) : (
+                        <div className="h-3 w-full"></div>
+                      )}
+                    </td>
+
+                    {/* Class (Blank space or class entry) */}
+                    <td className="border-r border-black p-0.5 text-center bg-white truncate text-[8.5px] text-slate-600">
+                      {!blankTemplateMode && student.className ? (
+                        <span className="truncate">{student.className}</span>
+                      ) : (
+                        <div className="h-3 w-full"></div>
+                      )}
+                    </td>
+
+                    {/* Days Attendance Grid */}
+                    {Array.from({ length: dayCount }, (_, idx) => {
+                      const dayNum = dayStart + idx;
+                      const isSunday = dayWeekdays[dayNum]?.isSunday;
+                      const mark = student.attendance[dayNum] || "";
+
+                      return (
+                        <td
+                          key={`c-${student.rollNo}-${dayNum}`}
+                          onClick={() => toggleAttendance(student.rollNo, dayNum)}
+                          className={`border-r border-black p-0 text-center font-bold cursor-pointer select-none ${
+                            isSunday
+                              ? "bg-rose-50/50"
+                              : mark === "P"
+                              ? "bg-emerald-50 text-emerald-800"
+                              : mark === "A"
+                              ? "bg-rose-50 text-rose-800 font-black"
+                              : "bg-white"
+                          }`}
+                        >
+                          {!blankTemplateMode && (
+                            <span className={mark === "P" ? "text-emerald-700" : mark === "A" ? "text-rose-700" : ""}>
+                              {mark}
+                            </span>
+                          )}
+                        </td>
+                      );
+                    })}
+
+                    {/* Right Page: Present, Absent, Remarks */}
+                    {isRightPage && (
+                      <>
+                        <td className="border-r border-black p-0 font-bold text-emerald-800 bg-emerald-50/30 text-[9px]">
+                          {!blankTemplateMode && stats.p > 0 ? stats.p : ""}
+                        </td>
+                        <td className="border-r border-black p-0 font-bold text-rose-800 bg-rose-50/30 text-[9px]">
+                          {!blankTemplateMode && stats.a > 0 ? stats.a : ""}
+                        </td>
+                        <td className="p-0 text-[8px] text-slate-500 text-left px-1">
+                          {!blankTemplateMode && stats.pct < 75 && stats.workingDays > 5 ? (
+                            <span className="text-rose-700 font-bold">Defaulter</span>
+                          ) : ""}
+                        </td>
+                      </>
+                    )}
+                  </tr>
+                );
+              })}
+
+              {/* Daily Summary Rows: Total Present & Total Absent */}
+              <tr className="border-t-2 border-black bg-slate-100 font-bold text-[8.5px] h-4">
+                <td colSpan={3} className="border-r border-black p-0.5 text-right uppercase px-2">
+                  Total Present:
+                </td>
+                {Array.from({ length: dayCount }, (_, idx) => {
+                  const dayNum = dayStart + idx;
+                  const count = totals.presentCount[dayNum];
+                  return (
+                    <td key={`tot-p-${dayNum}`} className="border-r border-black p-0 text-center text-emerald-800 font-bold">
+                      {!blankTemplateMode && count > 0 ? count : ""}
+                    </td>
+                  );
+                })}
+                {isRightPage && <td colSpan={3} className="bg-slate-100"></td>}
+              </tr>
+
+              <tr className="border-t border-black bg-slate-100 font-bold text-[8.5px] h-4">
+                <td colSpan={3} className="border-r border-black p-0.5 text-right uppercase px-2">
+                  Total Absent:
+                </td>
+                {Array.from({ length: dayCount }, (_, idx) => {
+                  const dayNum = dayStart + idx;
+                  const count = totals.absentCount[dayNum];
+                  return (
+                    <td key={`tot-a-${dayNum}`} className="border-r border-black p-0 text-center text-rose-800 font-bold">
+                      {!blankTemplateMode && count > 0 ? count : ""}
+                    </td>
+                  );
+                })}
+                {isRightPage && <td colSpan={3} className="bg-slate-100"></td>}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* Page Footer Signatures */}
+        <div className="mt-2 pt-1 border-t border-black flex items-center justify-between text-[9px] font-bold">
+          <div>
+            Page {pageNumber} of 4 • {batchTitle}
+          </div>
+          <div className="flex items-center gap-6">
+            <span>Teacher Signature: __________________</span>
+            <span>Principal Signature: __________________</span>
+          </div>
+        </div>
+
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-[#F4F4F6] text-[#111827] font-sans pb-20 selection:bg-black selection:text-white">
       
       {/* =========================================================================
-          TOP CONTROL BAR (Hidden during Print)
+          CONTROL BAR (Hidden during Print)
           ========================================================================= */}
       <header className="bg-white border-b-2 border-black sticky top-0 z-30 px-3 sm:px-6 py-2.5 shadow-sm print:hidden">
-        <div className="max-w-[1600px] mx-auto flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row md:items-center justify-between gap-3">
           
-          {/* Title & Badge */}
+          {/* Title */}
           <div className="flex items-center gap-3">
             <Link
               href="/"
               className="p-1.5 rounded-lg border border-black hover:bg-black hover:text-white transition-colors"
-              title="Back to Worksheet Studio"
+              title="Worksheet Studio"
             >
               <ArrowLeft size={16} />
             </Link>
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 bg-black text-white rounded">
-                  Official Register Standard
+                  A4 Portrait Standard
                 </span>
                 <span className="text-xs font-mono font-bold text-slate-600">
-                  100 Students • 1 Month Grid
+                  50 Records / Page • Days 1-15 (P1) &amp; Days 16-31 + Summary (P2)
                 </span>
               </div>
-              <h1 className="text-sm sm:text-base font-black font-mono tracking-tight text-black flex items-center gap-2">
-                ATTENDANCE REGISTER OF 100 STUDENTS
+              <h1 className="text-sm sm:text-base font-black font-mono tracking-tight text-black">
+                ATTENDANCE REGISTER (100 STUDENTS • PORTRAIT SPREAD)
               </h1>
             </div>
           </div>
 
-          {/* Quick Action Buttons */}
+          {/* Action Buttons */}
           <div className="flex flex-wrap items-center gap-2">
             
-            {/* Blank Template Toggle (Replicates image precisely) */}
+            {/* Blank Space Toggle */}
             <button
               onClick={() => setBlankTemplateMode(!blankTemplateMode)}
               className={`px-3 py-1.5 rounded border-2 border-black font-mono text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
@@ -233,44 +399,34 @@ export default function AttendanceRegisterStudio() {
               }`}
             >
               <Edit3 size={13} />
-              <span>{blankTemplateMode ? "Mode: Blank Notebook" : "Mode: Digital Marking"}</span>
+              <span>{blankTemplateMode ? "Mode: Blank Spaces" : "Mode: Sample Names"}</span>
             </button>
 
-            {/* Print Current Page PDF */}
+            {/* Print Current Selected Page */}
             <button
               onClick={() => handlePrint(false)}
               className="px-3 py-1.5 rounded border-2 border-black bg-black text-white hover:bg-neutral-800 font-mono text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
-              title="Print current 25-student page"
+              title="Print active portrait sheet"
             >
               <Printer size={13} />
-              <span>Print Page ({pageSlice})</span>
+              <span>Print Active Sheet</span>
             </button>
 
-            {/* Print All 100 Students PDF */}
+            {/* Print All 4 Portrait Pages */}
             <button
               onClick={() => handlePrint(true)}
               className="px-3 py-1.5 rounded border-2 border-black bg-emerald-700 text-white hover:bg-emerald-800 font-mono text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
-              title="Print complete 100-student register across 4 neat A4 sheets"
+              title="Print all 4 portrait pages for 100 students"
             >
               <Layers size={13} />
-              <span>Print All 100 (4 Pages)</span>
-            </button>
-
-            {/* Export CSV */}
-            <button
-              onClick={exportToCSV}
-              className="px-3 py-1.5 rounded border-2 border-black bg-white hover:bg-slate-100 text-black font-mono text-xs font-black transition-all cursor-pointer flex items-center gap-1.5"
-            >
-              <FileSpreadsheet size={13} />
-              <span>Export .csv</span>
+              <span>Print All 4 Pages (A4 Portrait)</span>
             </button>
           </div>
         </div>
 
-        {/* Second Row: Register Configuration Controls */}
-        <div className="max-w-[1600px] mx-auto pt-2.5 mt-2 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+        {/* View Switcher: Page 1 (1-50, Days 1-15), Page 2 (1-50, Days 16-31), Page 3 (51-100, Days 1-15), Page 4 (51-100, Days 16-31) */}
+        <div className="max-w-[1400px] mx-auto pt-2.5 mt-2 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
           
-          {/* Month & Year Selectors */}
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-bold">Month:</span>
             <select
@@ -299,371 +455,105 @@ export default function AttendanceRegisterStudio() {
               type="text"
               value={classNameInput}
               onChange={(e) => setClassNameInput(e.target.value)}
-              className="px-2 py-1 rounded border border-black bg-white text-black font-mono text-xs w-36"
-              placeholder="e.g. Class 7-A"
+              className="px-2 py-1 rounded border border-black bg-white text-black font-mono text-xs w-32"
             />
           </div>
 
-          {/* Student Page Slices */}
+          {/* Quick Page Spread Buttons */}
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="font-bold text-slate-600">Students:</span>
-            {(["1-25", "26-50", "51-75", "76-100", "all"] as const).map((slice) => (
-              <button
-                key={slice}
-                onClick={() => setPageSlice(slice)}
-                className={`px-2 py-0.5 rounded text-xs font-bold border transition-all cursor-pointer ${
-                  pageSlice === slice
-                    ? "bg-black text-white border-black"
-                    : "bg-white text-slate-700 border-slate-300 hover:bg-slate-100"
-                }`}
-              >
-                {slice === "all" ? "All 100" : `Roll ${slice}`}
-              </button>
-            ))}
-          </div>
+            <span className="font-bold text-slate-600">Select Sheet:</span>
+            
+            <button
+              onClick={() => setActiveSpreadSheet("batch1-left")}
+              className={`px-2.5 py-1 rounded text-xs font-bold border transition-all cursor-pointer ${
+                activeSpreadSheet === "batch1-left"
+                  ? "bg-black text-white border-black"
+                  : "bg-white text-slate-700 border-slate-300 hover:bg-slate-100"
+              }`}
+            >
+              Roll 1–50 (Days 1–15)
+            </button>
 
-          {/* Quick Mark Shortcuts */}
-          {!blankTemplateMode && (
-            <div className="flex items-center gap-2 flex-wrap">
-              <button
-                onClick={markSundaysAsHoliday}
-                className="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 border border-slate-400 text-[11px] font-bold text-slate-800"
-                title="Mark all Sundays as Holiday (H)"
-              >
-                Auto-mark Sundays (H)
-              </button>
-              <button
-                onClick={fillSampleData}
-                className="px-2 py-1 rounded bg-blue-50 hover:bg-blue-100 border border-blue-400 text-[11px] font-bold text-blue-800"
-              >
-                Sample Data
-              </button>
-              <button
-                onClick={clearAllAttendance}
-                className="px-2 py-1 rounded bg-rose-50 hover:bg-rose-100 border border-rose-400 text-[11px] font-bold text-rose-800"
-              >
-                Clear Marks
-              </button>
-            </div>
-          )}
+            <button
+              onClick={() => setActiveSpreadSheet("batch1-right")}
+              className={`px-2.5 py-1 rounded text-xs font-bold border transition-all cursor-pointer ${
+                activeSpreadSheet === "batch1-right"
+                  ? "bg-black text-white border-black"
+                  : "bg-white text-slate-700 border-slate-300 hover:bg-slate-100"
+              }`}
+            >
+              Roll 1–50 (Days 16–31 + Summary)
+            </button>
+
+            <button
+              onClick={() => setActiveSpreadSheet("batch2-left")}
+              className={`px-2.5 py-1 rounded text-xs font-bold border transition-all cursor-pointer ${
+                activeSpreadSheet === "batch2-left"
+                  ? "bg-black text-white border-black"
+                  : "bg-white text-slate-700 border-slate-300 hover:bg-slate-100"
+              }`}
+            >
+              Roll 51–100 (Days 1–15)
+            </button>
+
+            <button
+              onClick={() => setActiveSpreadSheet("batch2-right")}
+              className={`px-2.5 py-1 rounded text-xs font-bold border transition-all cursor-pointer ${
+                activeSpreadSheet === "batch2-right"
+                  ? "bg-black text-white border-black"
+                  : "bg-white text-slate-700 border-slate-300 hover:bg-slate-100"
+              }`}
+            >
+              Roll 51–100 (Days 16–31 + Summary)
+            </button>
+
+            <button
+              onClick={() => setActiveSpreadSheet("all-4-pages")}
+              className={`px-2.5 py-1 rounded text-xs font-bold border transition-all cursor-pointer ${
+                activeSpreadSheet === "all-4-pages"
+                  ? "bg-emerald-800 text-white border-emerald-800"
+                  : "bg-emerald-50 text-emerald-900 border-emerald-300 hover:bg-emerald-100"
+              }`}
+            >
+              View All 4 Sheets
+            </button>
+          </div>
         </div>
       </header>
 
       {/* =========================================================================
-          THE PHYSICAL ATTENDANCE REGISTER NOTEBOOK
-          (Replicates Image 1 & Image 2 with Spiral-Bound Holes & Typewriter Font)
+          REGISTER PORTRAIT SHEETS
           ========================================================================= */}
-      <main className="max-w-[1600px] mx-auto p-2 sm:p-6 print:p-0 print:max-w-none">
+      <main className="max-w-[1100px] mx-auto p-2 sm:p-6 print:p-0 print:max-w-none">
         
-        {/* Spiral Notebook Outer Card */}
-        <div className="bg-white border-2 border-black rounded-xl sm:rounded-2xl shadow-xl overflow-hidden print:border-none print:shadow-none print:rounded-none">
-          
-          {/* Top Spiral Binding Strip (Visible on Screen, Replicating Physical Spiral Binding) */}
-          <div className="bg-[#E4E4E7] border-b-2 border-black px-4 py-2 flex items-center justify-between print:hidden overflow-x-auto no-scrollbar">
-            <div className="flex items-center gap-3">
-              {/* Spiral wire ring representations */}
-              <div className="flex gap-2 shrink-0">
-                {Array.from({ length: 18 }).map((_, i) => (
-                  <div key={i} className="flex flex-col items-center">
-                    <div className="w-2.5 h-4 rounded-full border-2 border-slate-600 bg-white shadow-inner" />
-                  </div>
-                ))}
-              </div>
-              <span className="font-mono text-xs font-bold text-slate-700 uppercase tracking-wider pl-2">
-                SPIRAL BOUND ATTENDANCE REGISTER • STANDARD A4 GRID
-              </span>
-            </div>
+        {/* Page 1: Batch 1 (Roll 1–50), Days 1 to 15 */}
+        {(activeSpreadSheet === "batch1-left" || activeSpreadSheet === "all-4-pages") && (
+          renderRegisterPage(batch1, 1, 15, false, "Students 1 to 50", 1)
+        )}
 
-            <div className="text-[11px] font-mono text-slate-600 flex items-center gap-3">
-              <span>Marking: Click cell to cycle <strong className="text-emerald-700">P</strong> &gt; <strong className="text-rose-700">A</strong> &gt; <strong className="text-amber-700">L</strong> &gt; <strong className="text-slate-500">H</strong></span>
-            </div>
-          </div>
+        {/* Page 2: Batch 1 (Roll 1–50), Days 16 to 31 + Present, Absent, Remark */}
+        {(activeSpreadSheet === "batch1-right" || activeSpreadSheet === "all-4-pages") && (
+          renderRegisterPage(batch1, 16, daysInMonth, true, "Students 1 to 50", 2)
+        )}
 
-          {/* Actual Register Page Content */}
-          <div className="p-4 sm:p-8 font-mono text-black print:p-2">
-            
-            {/* Header: Attendance Register of _____________________ (Exact copy of image) */}
-            <div className="mb-4 pb-3 border-b-2 border-black">
-              <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2">
-                <div className="flex items-baseline gap-2 flex-grow">
-                  <h2 className="text-base sm:text-xl font-bold tracking-tight uppercase whitespace-nowrap">
-                    Attendance Register of
-                  </h2>
-                  <div className="border-b-2 border-black flex-grow pb-0.5 px-2 font-bold text-sm sm:text-base uppercase tracking-wider text-slate-800">
-                    {institutionName}
-                  </div>
-                </div>
+        {/* Page 3: Batch 2 (Roll 51–100), Days 1 to 15 */}
+        {(activeSpreadSheet === "batch2-left" || activeSpreadSheet === "all-4-pages") && (
+          renderRegisterPage(batch2, 1, 15, false, "Students 51 to 100", 3)
+        )}
 
-                <div className="flex items-center gap-4 text-xs sm:text-sm font-bold shrink-0">
-                  <div>
-                    <span>Class/Sec: </span>
-                    <span className="border-b border-black px-1.5 pb-0.5">{classNameInput}</span>
-                  </div>
-                  <div>
-                    <span>Month: </span>
-                    <span className="border-b border-black px-1.5 pb-0.5 uppercase">{MONTH_NAMES[month]} {year}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Register Grid Table */}
-            <div className="overflow-x-auto border-2 border-black">
-              <table className="w-full text-center border-collapse text-[10px] sm:text-xs">
-                
-                {/* 1. Header Rows (Matching notebook headers) */}
-                <thead>
-                  {/* Days of Week Row (Mo, Tu, We...) */}
-                  <tr className="border-b border-black bg-slate-50">
-                    <th 
-                      rowSpan={2} 
-                      className="border-r border-black p-1 w-9 text-center font-bold font-mono uppercase bg-white sticky left-0 z-20"
-                    >
-                      #.
-                    </th>
-                    <th 
-                      rowSpan={2} 
-                      className="border-r border-black p-1.5 w-44 sm:w-56 text-left font-bold font-mono bg-white sticky left-9 z-20 shadow-[2px_0_4px_rgba(0,0,0,0.06)]"
-                    >
-                      <div className="text-[11px] leading-tight font-black">Name-</div>
-                      <div className="text-[10px] font-normal text-slate-600">Class</div>
-                    </th>
-
-                    {/* Day Weekday Headers */}
-                    {Array.from({ length: daysInMonth }, (_, i) => {
-                      const dayNum = i + 1;
-                      const info = dayWeekdays[dayNum];
-                      return (
-                        <th
-                          key={`wd-${dayNum}`}
-                          className={`border-r border-black p-0.5 w-6 sm:w-7 font-bold text-[9px] ${
-                            info?.isSunday ? "bg-rose-100 text-rose-800 font-black" : "bg-slate-100 text-slate-700"
-                          }`}
-                        >
-                          {info?.dayName}
-                        </th>
-                      );
-                    })}
-
-                    {/* Summary Column Headers */}
-                    <th colSpan={4} className="border-r border-black p-1 bg-slate-100 font-bold text-[10px] uppercase">
-                      Monthly Summary
-                    </th>
-                    <th rowSpan={2} className="p-1 w-20 bg-slate-50 font-bold text-[10px] uppercase">
-                      Remarks
-                    </th>
-                  </tr>
-
-                  {/* Day Date Numbers Row (1, 2, 3... 31) */}
-                  <tr className="border-b-2 border-black bg-white">
-                    {Array.from({ length: daysInMonth }, (_, i) => {
-                      const dayNum = i + 1;
-                      const info = dayWeekdays[dayNum];
-                      return (
-                        <th
-                          key={`d-${dayNum}`}
-                          className={`border-r border-black p-1 font-mono font-bold text-[10px] sm:text-xs ${
-                            info?.isSunday ? "bg-rose-50 text-rose-800" : ""
-                          }`}
-                        >
-                          {dayNum}
-                        </th>
-                      );
-                    })}
-
-                    {/* Summary Columns */}
-                    <th className="border-r border-black p-1 w-8 font-bold text-emerald-800 bg-emerald-50 text-[10px]">P</th>
-                    <th className="border-r border-black p-1 w-8 font-bold text-rose-800 bg-rose-50 text-[10px]">A</th>
-                    <th className="border-r border-black p-1 w-8 font-bold text-amber-800 bg-amber-50 text-[10px]">L</th>
-                    <th className="border-r border-black p-1 w-11 font-bold bg-slate-50 text-[10px]">%</th>
-                  </tr>
-                </thead>
-
-                {/* 2. Students Rows (1 to 100) */}
-                <tbody className="divide-y divide-black font-mono">
-                  {displayedStudents.map((student) => {
-                    const stats = getStudentStats(student.attendance);
-
-                    return (
-                      <tr 
-                        key={student.rollNo}
-                        className="hover:bg-amber-50/40 transition-colors h-7 sm:h-8"
-                      >
-                        {/* Roll Number Column (Sticky Left) */}
-                        <td className="border-r border-black p-1 text-center font-bold bg-white sticky left-0 z-10">
-                          {student.rollNo}
-                        </td>
-
-                        {/* Name and Class Column (Sticky Left) */}
-                        <td className="border-r border-black p-1.5 text-left font-bold bg-white sticky left-9 z-10 shadow-[2px_0_4px_rgba(0,0,0,0.06)] truncate max-w-[180px] sm:max-w-none">
-                          {blankTemplateMode ? (
-                            <div className="h-6 w-full"></div>
-                          ) : (
-                            <>
-                              <div className="truncate text-slate-900 font-semibold">{student.name}</div>
-                              <div className="text-[9px] font-normal text-slate-500 truncate">{student.className}</div>
-                            </>
-                          )}
-                        </td>
-
-                        {/* 31 Attendance Day Cells */}
-                        {Array.from({ length: daysInMonth }, (_, i) => {
-                          const dayNum = i + 1;
-                          const isSunday = dayWeekdays[dayNum]?.isSunday;
-                          const mark = student.attendance[dayNum] || "";
-
-                          return (
-                            <td
-                              key={`cell-${student.rollNo}-${dayNum}`}
-                              onClick={() => toggleAttendance(student.rollNo, dayNum)}
-                              className={`border-r border-black p-0 text-center font-black cursor-pointer select-none transition-colors ${
-                                isSunday
-                                  ? "bg-rose-50/50"
-                                  : mark === "P"
-                                  ? "bg-emerald-50/80 text-emerald-800"
-                                  : mark === "A"
-                                  ? "bg-rose-50/80 text-rose-800 font-black"
-                                  : mark === "L"
-                                  ? "bg-amber-50/80 text-amber-800"
-                                  : mark === "H"
-                                  ? "bg-slate-100 text-slate-500"
-                                  : "bg-white hover:bg-slate-100"
-                              }`}
-                              title={blankTemplateMode ? "" : `Roll ${student.rollNo}: Day ${dayNum} - Click to toggle mark`}
-                            >
-                              {!blankTemplateMode && (
-                                <span className={
-                                  mark === "P" ? "text-emerald-700" :
-                                  mark === "A" ? "text-rose-700 font-black" :
-                                  mark === "L" ? "text-amber-700" :
-                                  mark === "H" ? "text-slate-400 text-[9px]" : ""
-                                }>
-                                  {mark}
-                                </span>
-                              )}
-                            </td>
-                          );
-                        })}
-
-                        {/* Monthly Summary Computed Columns */}
-                        <td className="border-r border-black p-1 font-bold text-emerald-800 bg-emerald-50/30">
-                          {!blankTemplateMode ? stats.p : ""}
-                        </td>
-                        <td className="border-r border-black p-1 font-bold text-rose-800 bg-rose-50/30">
-                          {!blankTemplateMode ? stats.a : ""}
-                        </td>
-                        <td className="border-r border-black p-1 font-bold text-amber-800 bg-amber-50/30">
-                          {!blankTemplateMode ? stats.l : ""}
-                        </td>
-                        <td className={`border-r border-black p-1 font-bold text-[10px] ${
-                          stats.pct >= 75 ? "text-emerald-800" : stats.pct > 0 ? "text-rose-700 font-black" : ""
-                        }`}>
-                          {!blankTemplateMode && stats.workingDays > 0 ? `${stats.pct}%` : ""}
-                        </td>
-                        <td className="p-1 text-slate-400 text-[9px] text-left">
-                          {!blankTemplateMode && stats.pct < 75 && stats.workingDays > 5 ? (
-                            <span className="text-rose-600 font-bold">Short Attend.</span>
-                          ) : ""}
-                        </td>
-                      </tr>
-                    );
-                  })}
-
-                  {/* 3. Daily Summary Rows at the Bottom of Register */}
-                  <tr className="border-t-2 border-black bg-slate-100 font-bold h-7">
-                    <td className="border-r border-black p-1 text-center sticky left-0 bg-slate-100 z-10">
-                      Σ
-                    </td>
-                    <td className="border-r border-black p-1.5 text-left uppercase text-[10px] sticky left-9 bg-slate-100 z-10 shadow-[2px_0_4px_rgba(0,0,0,0.06)]">
-                      Total Present
-                    </td>
-                    {Array.from({ length: daysInMonth }, (_, i) => {
-                      const dayNum = i + 1;
-                      const count = dailyTotals.presentCount[dayNum];
-                      return (
-                        <td key={`tot-p-${dayNum}`} className="border-r border-black p-0 text-center font-bold text-emerald-800 text-[10px]">
-                          {!blankTemplateMode && count > 0 ? count : ""}
-                        </td>
-                      );
-                    })}
-                    <td colSpan={5} className="bg-slate-100"></td>
-                  </tr>
-
-                  <tr className="border-t border-black bg-slate-100 font-bold h-7">
-                    <td className="border-r border-black p-1 text-center sticky left-0 bg-slate-100 z-10">
-                      Σ
-                    </td>
-                    <td className="border-r border-black p-1.5 text-left uppercase text-[10px] sticky left-9 bg-slate-100 z-10 shadow-[2px_0_4px_rgba(0,0,0,0.06)]">
-                      Total Absent
-                    </td>
-                    {Array.from({ length: daysInMonth }, (_, i) => {
-                      const dayNum = i + 1;
-                      const count = dailyTotals.absentCount[dayNum];
-                      return (
-                        <td key={`tot-a-${dayNum}`} className="border-r border-black p-0 text-center font-bold text-rose-800 text-[10px]">
-                          {!blankTemplateMode && count > 0 ? count : ""}
-                        </td>
-                      );
-                    })}
-                    <td colSpan={5} className="bg-slate-100"></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            {/* Bottom Signatures Block (Matching notebook footer) */}
-            <div className="mt-8 pt-4 border-t-2 border-black flex flex-col sm:flex-row items-end justify-between gap-6 text-xs font-mono font-bold">
-              <div className="space-y-1">
-                <div>Total Enrolled Students: <strong>100</strong></div>
-                <div>Displayed on this Sheet: <strong>{displayedStudents.length} Students</strong></div>
-              </div>
-
-              <div className="flex items-center gap-8 text-center">
-                <div className="space-y-1">
-                  <div className="w-40 border-b border-black"></div>
-                  <div className="text-[11px] uppercase">Class Teacher Signature</div>
-                </div>
-
-                <div className="space-y-1">
-                  <div className="w-40 border-b border-black"></div>
-                  <div className="text-[11px] uppercase">Principal / HOD Signature</div>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        {/* Informational Guidance for Digital Pens & OneNote */}
-        <div className="mt-6 p-4 rounded-xl bg-white border border-slate-300 shadow-sm print:hidden flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2">
-            <BookmarkCheck size={18} className="text-emerald-700 shrink-0" />
-            <div>
-              <span className="font-bold text-slate-900">OneNote &amp; Digital Stylus Pad Ready:</span>
-              <p className="text-slate-600 text-[11px] mt-0.5">
-                Switch to <strong>Mode: Blank Notebook</strong> and click <strong>Print Page</strong> or <strong>Print All 100</strong> to export crisp A4 vector PDFs that open directly in OneNote, GoodNotes, or Drawboard PDF for digital pen writing.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            <Link
-              href="/"
-              className="px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold transition-all text-xs"
-            >
-              Class 7 Maths Worksheet
-            </Link>
-          </div>
-        </div>
+        {/* Page 4: Batch 2 (Roll 51–100), Days 16 to 31 + Present, Absent, Remark */}
+        {(activeSpreadSheet === "batch2-right" || activeSpreadSheet === "all-4-pages") && (
+          renderRegisterPage(batch2, 16, daysInMonth, true, "Students 51 to 100", 4)
+        )}
 
       </main>
 
-      {/* Print CSS Specific Rules for Landscape High-Contrast */}
+      {/* Print CSS Specific Rules for Exact A4 Portrait Output */}
       <style jsx global>{`
         @media print {
           @page {
-            size: A4 landscape;
-            margin: 6mm 6mm 6mm 6mm;
+            size: A4 portrait;
+            margin: 5mm 5mm 5mm 5mm;
           }
           body {
             background: #ffffff !important;
@@ -673,6 +563,13 @@ export default function AttendanceRegisterStudio() {
           }
           .print\\:hidden {
             display: none !important;
+          }
+          .page-break-after-always {
+            page-break-after: always !important;
+            break-after: page !important;
+            margin-bottom: 0 !important;
+            border: 2px solid #000000 !important;
+            box-shadow: none !important;
           }
           table {
             page-break-inside: auto;
