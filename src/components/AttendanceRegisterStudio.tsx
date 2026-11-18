@@ -125,43 +125,40 @@ export default function AttendanceRegisterStudio() {
     return (
       <div key={`page-${pageNumber}`} className="a4-portrait-page bg-white border-2 border-black p-3 sm:p-5 font-mono text-black shadow-md rounded-none mb-8 page-break-after-always">
         
-        {/* Header: Attendance Register of _____________________ (with NextSem Logo and Blank Month space) */}
+        {/* Header: NextSem Academy Official Header with blank month underline */}
         <div className="mb-2 pb-1.5 border-b-2 border-black">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-2 sm:gap-4 text-xs font-bold font-mono">
             
-            {/* Left: NextSem Academy Official Logo */}
-            <div className="flex items-center gap-2 shrink-0">
+            {/* Left: NextSem Logo & "ATTENDANCE REGISTER OF" & institution line */}
+            <div className="flex items-center gap-2 min-w-0 flex-1">
               <img
                 src="/nextsem_logo.png"
                 alt="NextSem Academy"
-                className="h-6 sm:h-7 object-contain"
+                className="h-6 sm:h-7 w-auto object-contain shrink-0"
               />
-              <span className="text-xs sm:text-sm font-bold tracking-tight uppercase whitespace-nowrap">
-                Attendance Register of
+              <span className="tracking-tight uppercase whitespace-nowrap text-[11px] sm:text-xs">
+                ATTENDANCE REGISTER OF
+              </span>
+              <span className="border-b-2 border-black px-1 pb-0.5 tracking-wider uppercase text-[11px] sm:text-xs whitespace-nowrap text-slate-900">
+                {institutionName}
               </span>
             </div>
 
-            {/* Institution Underline */}
-            <div className="border-b-2 border-black flex-grow pb-0.5 px-2 font-bold text-xs sm:text-sm uppercase tracking-wider text-slate-800 truncate">
-              {institutionName}
-            </div>
-
-            {/* Right: Class, Blank Space for Month, Batch Badge */}
-            <div className="flex items-center gap-3 text-[11px] font-bold shrink-0">
-              <div>
-                <span>Class: </span>
-                <span className="border-b border-black inline-block min-w-16 px-1 pb-0.5 text-center">
-                  {classNameInput || ""}
-                </span>
-              </div>
-              <div className="flex items-center gap-1">
-                <span>Month: </span>
-                {/* Clean blank line for handwritten month / year */}
-                <span className="border-b-2 border-black inline-block w-24 sm:w-28 pb-0.5">
+            {/* Right: Class: ____  Month: _____ [Batch Badge] */}
+            <div className="flex items-center gap-3 sm:gap-4 text-[11px] sm:text-xs shrink-0">
+              <div className="flex items-center gap-1 whitespace-nowrap">
+                <span>Class:</span>
+                <span className="border-b-2 border-black inline-block w-20 sm:w-24 pb-0.5 text-center">
                   &nbsp;
                 </span>
               </div>
-              <div className="text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded text-[10px]">
+              <div className="flex items-center gap-1 whitespace-nowrap">
+                <span>Month:</span>
+                <span className="border-b-2 border-black inline-block w-28 sm:w-36 pb-0.5 text-center">
+                  &nbsp;
+                </span>
+              </div>
+              <div className="text-slate-600 bg-slate-100 px-2 py-0.5 rounded text-[10px] whitespace-nowrap hidden sm:inline-block">
                 {batchTitle}
               </div>
             </div>
