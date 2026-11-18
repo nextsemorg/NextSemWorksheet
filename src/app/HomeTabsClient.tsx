@@ -2,11 +2,12 @@
 
 import React, { useState } from "react";
 import AttendanceRegisterStudio from "@/components/AttendanceRegisterStudio";
+import UniversalWorkbookStudio from "@/components/UniversalWorkbookStudio";
 import WorksheetStudio from "@/components/WorksheetStudio";
-import { ClipboardList, BookOpen } from "lucide-react";
+import { ClipboardList, Sparkles, BookOpen } from "lucide-react";
 
 export default function HomeTabsClient() {
-  const [activeTab, setActiveTab] = useState<"attendance" | "worksheet">("attendance");
+  const [activeTab, setActiveTab] = useState<"universal" | "maths-ncert" | "attendance">("universal");
 
   return (
     <div>
@@ -22,6 +23,30 @@ export default function HomeTabsClient() {
         {/* Tab Switcher */}
         <div className="flex items-center gap-1.5 bg-neutral-950 p-1 rounded-xl border border-neutral-800">
           <button
+            onClick={() => setActiveTab("universal")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold font-mono transition-all cursor-pointer ${
+              activeTab === "universal"
+                ? "bg-blue-600 text-white shadow-sm"
+                : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+            }`}
+          >
+            <Sparkles size={14} className="text-yellow-300" />
+            <span>AI Workbook Generator (Any Subject)</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("maths-ncert")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold font-mono transition-all cursor-pointer ${
+              activeTab === "maths-ncert"
+                ? "bg-gradient-to-r from-[#e05688] to-[#c73e70] text-white shadow-sm"
+                : "text-neutral-400 hover:text-white hover:bg-neutral-900"
+            }`}
+          >
+            <BookOpen size={14} />
+            <span>NCERT Split Studio</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab("attendance")}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold font-mono transition-all cursor-pointer ${
               activeTab === "attendance"
@@ -30,19 +55,7 @@ export default function HomeTabsClient() {
             }`}
           >
             <ClipboardList size={14} />
-            <span>Attendance Register (100 Students)</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("worksheet")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold font-mono transition-all cursor-pointer ${
-              activeTab === "worksheet"
-                ? "bg-gradient-to-r from-[#e05688] to-[#c73e70] text-white shadow-sm"
-                : "text-neutral-400 hover:text-white hover:bg-neutral-900"
-            }`}
-          >
-            <BookOpen size={14} />
-            <span>Class 7 Maths Worksheet</span>
+            <span>Attendance Register</span>
           </button>
         </div>
 
@@ -52,10 +65,12 @@ export default function HomeTabsClient() {
       </nav>
 
       {/* Render Active View */}
-      {activeTab === "attendance" ? (
-        <AttendanceRegisterStudio />
-      ) : (
+      {activeTab === "universal" ? (
+        <UniversalWorkbookStudio />
+      ) : activeTab === "maths-ncert" ? (
         <WorksheetStudio />
+      ) : (
+        <AttendanceRegisterStudio />
       )}
     </div>
   );
