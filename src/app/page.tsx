@@ -1,10 +1,10 @@
-import WorksheetStudio from "@/components/WorksheetStudio";
+import HomeTabsClient from "./HomeTabsClient";
 
 export const metadata = {
-  title: "Class 7 Maths Chapter 1 Worksheet Studio | Ganita Prakash Part-II | NextSem",
-  description: "Page-by-page interactive and printable worksheets for NCERT Class 7 Maths Chapter 1 Geometric Twins (Congruence & Correspondence).",
+  title: "Attendance Register & Class 7 Maths Worksheet Studio | NextSem",
+  description: "Official 100-Student Monthly Attendance Register matching physical spiral-bound teacher registers, plus Class 7 Maths NCERT Worksheet Studio.",
 };
 
 export default function Home() {
-  return <WorksheetStudio />;
+  return <HomeTabsClient />;
 }
