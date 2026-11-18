@@ -31,7 +31,9 @@ export const DEFAULT_STUDENT_NAMES: string[] = [
 export function generate100Students(fillSample: boolean = false): StudentAttendance[] {
   return Array.from({ length: 100 }, (_, index) => {
     const rollNo = index + 1;
-    const name = DEFAULT_STUDENT_NAMES[index] || `Student ${rollNo}`;
+    // Default to completely blank name and class so the user can write on them or in OneNote
+    const name = fillSample ? (DEFAULT_STUDENT_NAMES[index] || `Student ${rollNo}`) : "";
+    const className = fillSample ? "Class-7 / Sem-1" : "";
     const attendance: Record<number, "P" | "A" | "L" | "H" | ""> = {};
 
     for (let day = 1; day <= 31; day++) {
@@ -54,7 +56,7 @@ export function generate100Students(fillSample: boolean = false): StudentAttenda
     return {
       rollNo,
       name,
-      className: "Class-7 / Sem-1",
+      className,
       attendance
     };
   });

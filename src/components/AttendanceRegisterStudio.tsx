@@ -21,7 +21,7 @@ export default function AttendanceRegisterStudio() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [viewMode, setViewMode] = useState<"spiral" | "print" | "compact">("spiral");
   const [pageSlice, setPageSlice] = useState<"all" | "1-25" | "26-50" | "51-75" | "76-100">("1-25");
-  const [blankTemplateMode, setBlankTemplateMode] = useState<boolean>(false);
+  const [blankTemplateMode, setBlankTemplateMode] = useState<boolean>(true);
   const [activeDateForQuickMark, setActiveDateForQuickMark] = useState<number>(1);
   const [copiedNotification, setCopiedNotification] = useState<string | null>(null);
 
@@ -496,8 +496,14 @@ export default function AttendanceRegisterStudio() {
 
                         {/* Name and Class Column (Sticky Left) */}
                         <td className="border-r border-black p-1.5 text-left font-bold bg-white sticky left-9 z-10 shadow-[2px_0_4px_rgba(0,0,0,0.06)] truncate max-w-[180px] sm:max-w-none">
-                          <div className="truncate text-slate-900 font-semibold">{student.name}</div>
-                          <div className="text-[9px] font-normal text-slate-500 truncate">{student.className}</div>
+                          {blankTemplateMode ? (
+                            <div className="h-6 w-full"></div>
+                          ) : (
+                            <>
+                              <div className="truncate text-slate-900 font-semibold">{student.name}</div>
+                              <div className="text-[9px] font-normal text-slate-500 truncate">{student.className}</div>
+                            </>
+                          )}
                         </td>
 
                         {/* 31 Attendance Day Cells */}
